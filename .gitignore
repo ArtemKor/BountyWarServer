@@ -6,76 +6,12 @@
 *.so
 *.dylib
 
-# Test binary, build with `go test -c`
-*.test
-
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
 
 # Project-local glide cache, RE: https://github.com/Masterminds/glide/issues/736
 .glide/
-
 .idea/
 .DS_Store
 /experiments
 /ex
-
-# Configs
-app.conf
-
-# Docker
-/docker_for_use/
-
-# DB
-currency-log.json
-process-log.json
-settings.json
-chains-threads.json
-balance-log.json
-IDCounter.json
-TardeBotIDMap.json
-TardeBotNamedMap.json
-
-# Frontend
-# See http://help.github.com/ignore-files/ for more about ignoring files.
-
-# compiled output
-frontendng/dist
-frontendng/tmp
-frontendng/out-tsc
-
-# dependencies
-frontendng/node_modules
-
-# IDEs and editors
-frontendng/.idea
-frontendng/.project
-frontendng/.classpath
-frontendng/.c9/
-frontendng/*.launch
-frontendng/.settings/
-frontendng/*.sublime-workspace
-
-# IDE - VSCode
-frontendng/.vscode/*
-!frontendng/.vscode/settings.json
-!frontendng/.vscode/tasks.json
-!frontendng/.vscode/launch.json
-!frontendng/.vscode/extensions.json
-
-# misc
-frontendng/.sass-cache
-frontendng/connect.lock
-frontendng/coverage
-frontendng/libpeerconnection.log
-frontendng/npm-debug.log
-frontendng/yarn-error.log
-frontendng/testem.log
-frontendng/typings
-
-# System Files
-frontendng/.DS_Store
-frontendng/Thumbs.db
-frontendng/package-lock.json
-
-
