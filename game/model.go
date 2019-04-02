@@ -31,6 +31,8 @@ type Player struct {
 	Session         *websocket.Conn
 	CurrentDrone    Drone
 	KeySet          [5]bool
+	Mx              int
+	My              int
 	answerPool      *bytes.Buffer
 	answerPoolMutex sync.Mutex
 }
@@ -150,6 +152,12 @@ func (td *TDrone) update() {
 			td.parameters.x += td.speed * math.Sin(td.parameters.rotation)
 			td.parameters.y -= td.speed * math.Cos(td.parameters.rotation)
 		}
+
+		atan := math.Atan(float64(td.parameters.driver.My)/float64(td.parameters.driver.Mx)) + math.Pi/2.0
+		if td.parameters.driver.Mx < 0 {
+			atan = atan + math.Pi
+		}
+		td.parameters.mouse = atan
 
 		i := idToBytes(td.parameters.iD)
 		b := td.getPositionProtocol()

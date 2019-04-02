@@ -33,13 +33,6 @@ func echo(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 		game.IncomeMessage(message, c)
-		/*
-			log.Printf("recv type:%d, mess:%s\n", mt, message)
-			err = c.WriteMessage(mt, message)
-			if err != nil {
-				log.Println("write:", err)
-				break
-			}*/
 	}
 }
 
@@ -48,7 +41,6 @@ func cl(c *websocket.Conn) {
 }
 
 func main() {
-	//fmt.Println(game.KeyGo, " ", game.KeyBack, " ", game.KeyLeft, " ", game.KeyRight, " ", game.KeyFire)
 	go game.Cycle()
 	flag.Parse()
 	log.SetFlags(0)

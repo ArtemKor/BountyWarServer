@@ -42,7 +42,6 @@ func Cycle() {
 				buf := player.answerPool
 				player.answerPool = bytes.NewBuffer(make([]byte, 0))
 				player.answerPoolMutex.Unlock()
-				//log.Println("write :", buf.Len())
 				_ = player.Session.WriteMessage(2, buf.Bytes())
 			}
 		}
