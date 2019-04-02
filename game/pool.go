@@ -7,48 +7,55 @@ import (
 	"sync"
 )
 
-var PlayerPool map[uint32]*Player
 var SessionPool map[*websocket.Conn]*Player
-var PlayerPoolMutex sync.Mutex
+var SessionPoolMutex sync.Mutex
+var IncomePool map[*websocket.Conn]*Income
+var IncomePoolMutex sync.Mutex
 var ObjectPool map[uint32]GameObject
 var ObjectPoolMutex sync.Mutex
 
-func init(){
-	PlayerPool = make(map[uint32]*Player)
+func init() {
 	ObjectPool = make(map[uint32]GameObject)
 	SessionPool = make(map[*websocket.Conn]*Player)
+	IncomePool = make(map[*websocket.Conn]*Income)
 }
 
 func PlayerConnect(c *websocket.Conn) *Player {
 	id := getNewID()
 	wp := WeaponParameters{
-		rotation:0,
+		rotation: 0,
 	}
 	w := TWeapon{
-		vparam:&wp,
+		vparam: &wp,
 	}
 	dp := DroneParameters{
 		x:        100,
 		y:        100,
 		rotation: 0,
 		iD:       id,
+		health:   100,
 	}
 	d := TDrone{
 		parameters: &dp,
-		tip:    2,
-		weapon: &w,
+		tip:        2,
+		weapon:     &w,
 	}
 	p := Player{
 		Session:      c,
 		CurrentDrone: &d,
 		KeySet:       [5]bool{false, false, false, false, false},
 		answerPool:   bytes.NewBuffer(make([]byte, 0)),
-		incomePool:   bytes.NewBuffer(make([]byte, 0)),
 	}
-	PlayerPoolMutex.Lock()
-	PlayerPool[id] = &p
+	i := Income{
+		income: bytes.NewBuffer(make([]byte, 0)),
+	}
+	p.CurrentDrone.param().driver = &p
+	IncomePoolMutex.Lock()
+	IncomePool[c] = &i
+	IncomePoolMutex.Unlock()
+	SessionPoolMutex.Lock()
 	SessionPool[c] = &p
-	PlayerPoolMutex.Unlock()
+	SessionPoolMutex.Unlock()
 	p.answerPoolMutex.Lock()
 	p.answerPool.Write([]byte{0})
 	p.answerPool.Write(idToBytes(id))
@@ -62,18 +69,31 @@ func PlayerConnect(c *websocket.Conn) *Player {
 	//if err != nil {
 	//	log.Println("err:", err)
 	//}
-	log.Print("Player connect: ", len(PlayerPool))
+	log.Print("Player connect: ", len(SessionPool))
 	return &p
 }
 
-func IncomeMessage(ms []byte, c *websocket.Conn){
-	if p, OK := SessionPool[c]; OK {
-		p.incomePoolMutex.Lock()
-		p.incomePool.Write(ms)
-		p.incomePoolMutex.Unlock()
+func IncomeMessage(ms []byte, c *websocket.Conn) {
+	if p, OK := IncomePool[c]; OK {
+		p.incomeMutex.Lock()
+		p.income.Write(ms)
+		p.incomeMutex.Unlock()
 	}
 }
 
-func PlayerDisconnect(p *Player){
-
+func PlayerDisconnect(c *websocket.Conn) {
+	SessionPoolMutex.Lock()
+	p, OK := SessionPool[c]
+	if OK {
+		p.CurrentDrone.param().health = 0
+		delete(SessionPool, c)
+		log.Print("Player disconnect: ", len(SessionPool))
+	}
+	SessionPoolMutex.Unlock()
+	_, OK = IncomePool[c]
+	if OK {
+		IncomePoolMutex.Lock()
+		delete(IncomePool, c)
+		IncomePoolMutex.Unlock()
+	}
 }

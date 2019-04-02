@@ -19,11 +19,11 @@ func echo(w http.ResponseWriter, r *http.Request) {
 		log.Print("upgrade:", err)
 		return
 	}
-	defer c.Close()
-	p := game.PlayerConnect(c)
-	c.SetCloseHandler(func (code int, text string) error{
-		log.Println("Disconnect:")
-		game.PlayerDisconnect(p)
+	defer cl(c)
+
+	game.PlayerConnect(c)
+	c.SetCloseHandler(func(code int, text string) error {
+		game.PlayerDisconnect(c)
 		return nil
 	})
 	for {
@@ -34,15 +34,18 @@ func echo(w http.ResponseWriter, r *http.Request) {
 		}
 		game.IncomeMessage(message, c)
 		/*
-		log.Printf("recv type:%d, mess:%s\n", mt, message)
-		err = c.WriteMessage(mt, message)
-		if err != nil {
-			log.Println("write:", err)
-			break
-		}*/
+			log.Printf("recv type:%d, mess:%s\n", mt, message)
+			err = c.WriteMessage(mt, message)
+			if err != nil {
+				log.Println("write:", err)
+				break
+			}*/
 	}
 }
 
+func cl(c *websocket.Conn) {
+	_ = c.Close()
+}
 
 func main() {
 	//fmt.Println(game.KeyGo, " ", game.KeyBack, " ", game.KeyLeft, " ", game.KeyRight, " ", game.KeyFire)

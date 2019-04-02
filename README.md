@@ -44,7 +44,7 @@ This README would normally document whatever steps are necessary to get your app
 
 //Дрон был уничтожен
      0    , 1 2 3 4  
-     5    , objectID 
+     4    , objectID 
 <-header->,<-  ID  ->
 
 //Ammo столкнулся
