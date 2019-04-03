@@ -59,6 +59,12 @@ func PlayerConnect(c *websocket.Conn) *Player {
 	p.answerPoolMutex.Lock()
 	p.answerPool.Write([]byte{0})
 	p.answerPool.Write(idToBytes(id))
+	ma := make([]byte, 1025)
+	ma[0] = 14
+	ma[5] = 1
+	ma[37] = 1
+	ma[69] = 1
+	p.answerPool.Write(ma)
 	p.answerPoolMutex.Unlock()
 	ObjectPoolMutex.Lock()
 	ObjectPool[id] = &d

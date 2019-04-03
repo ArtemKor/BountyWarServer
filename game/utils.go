@@ -30,11 +30,11 @@ func bytesToRadian(angle []byte) float64 {
 
 func coordToBytes(coord float64) []byte {
 	answer := make([]byte, 3)
-	f := int(coord) / 2048
-	coord -= float64(f * 2048)
-	s := int(coord) / 64
-	coord -= float64(s * 64)
-	t := int(coord * 4)
+	f := int(coord) / chunkMulty
+	//coord -= float64(f * 2048)
+	s := (int(coord) % chunkMulty) / cellSize
+	//coord -= float64(s * 64)
+	t := int(coord*cellMulty) % cellSize
 	answer[0] = byte(f)
 	answer[1] = byte(s)
 	answer[2] = byte(t)
@@ -56,9 +56,11 @@ func incomeAnalise(pocket []byte, c *websocket.Conn) {
 				i += 5
 			case 6:
 				p.setKeys(pocket[i+1])
-				a := bytesToRadian(pocket[i+2 : i+4])
-				p.CurrentDrone.param().mouse = a
-				i += 4
+				p.Mx = int(binary.BigEndian.Uint16(pocket[i+2:i+4])) - 32768
+				p.My = int(binary.BigEndian.Uint16(pocket[i+4:i+6])) - 32768
+				//a := bytesToRadian(pocket[i+2 : i+4])
+				//p.CurrentDrone.param().mouse = a
+				i += 6
 			default:
 				i = len(pocket)
 			}

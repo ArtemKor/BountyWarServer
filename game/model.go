@@ -8,11 +8,16 @@ import (
 )
 
 const (
-	KeyGo    = 1
-	KeyBack  = 1 << 1
-	KeyLeft  = 1 << 2
-	KeyRight = 1 << 3
-	KeyFire  = 1 << 4
+	KeyGo      = 1
+	KeyBack    = 1 << 1
+	KeyLeft    = 1 << 2
+	KeyRight   = 1 << 3
+	KeyFire    = 1 << 4
+	cellSize   = 64
+	chunkSize  = 32
+	worldSize  = 5
+	cellMulty  = 256.0 / cellSize
+	chunkMulty = cellSize * chunkSize
 )
 
 var counterID uint32
