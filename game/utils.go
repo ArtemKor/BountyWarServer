@@ -5,50 +5,14 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-func idToBytes(id uint32) []byte {
-	answer := make([]byte, 4)
-	binary.BigEndian.PutUint32(answer, id)
-	return answer
-}
-
-func bytesToID(b []byte) uint32 {
-	return binary.BigEndian.Uint32(b)
-}
-
-func radianToBytes(angle float64) []byte {
-	answer := make([]byte, 2)
-	f := int(angle)
-	s := int((angle - float64(f)) * 100)
-	answer[0] = byte(f)
-	answer[1] = byte(s)
-	return answer
-}
-
-func bytesToRadian(angle []byte) float64 {
-	return float64(angle[0]) + (float64(angle[1]) / 100.0)
-}
-
-func coordToBytes(coord float64) []byte {
-	answer := make([]byte, 3)
-	f := int(coord) / chunkMulty
-	//coord -= float64(f * 2048)
-	s := (int(coord) % chunkMulty) / cellSize
-	//coord -= float64(s * 64)
-	t := int(coord*cellMulty) % cellSize
-	answer[0] = byte(f)
-	answer[1] = byte(s)
-	answer[2] = byte(t)
-	return answer
-}
-
-func incomeAnalise(pocket []byte, c *websocket.Conn) {
+func IncomeAnalise(pocket []byte, c *websocket.Conn) {
 	p, OK := SessionPool[c]
 	if OK {
 		for i := 0; i < len(pocket); {
 			switch pocket[i] {
 			case 5:
 				id := bytesToID(pocket[i+1 : i+5])
-				drone := ObjectPool[id].getDisplayProtocol()
+				drone := DronePool[id].getDisplayProtocol()
 				p.answerPoolMutex.Lock()
 				p.answerPool.Write([]byte{2, pocket[i+1], pocket[i+2], pocket[i+3], pocket[i+4]})
 				p.answerPool.Write(drone)

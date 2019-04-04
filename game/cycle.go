@@ -1,8 +1,8 @@
 package game
 
 import (
+	"BountyWarServerG/game/model"
 	"bytes"
-	"github.com/gorilla/websocket"
 	"time"
 )
 
@@ -12,36 +12,52 @@ func Cycle() {
 		delta := current.UnixNano() - time.Now().UnixNano()
 		current = time.Now()
 
-		cin := make(map[*websocket.Conn]*bytes.Buffer)
+		cin := make([]*model.ConnAnalize, 0, 16)
 		//IncomePoolMutex.Lock()
 		for c, player := range IncomePool {
-			if player.income.Len() > 0 {
-				player.incomeMutex.Lock()
-				buf := player.income
-				player.income = bytes.NewBuffer(make([]byte, 0))
-				player.incomeMutex.Unlock()
-				cin[c] = buf
+			if player.Income.Len() > 0 {
+				player.IncomeMutex.Lock()
+				conn := model.ConnAnalize{
+					Conn:   c,
+					Buffer: player.Income,
+				}
+				player.Income = bytes.NewBuffer(make([]byte, 0))
+				player.IncomeMutex.Unlock()
+				cin = append(cin, &conn)
 			}
 		}
 		//IncomePoolMutex.Unlock()
+		cn := make(chan bool, model.CoreCount)
 
-		for c, income := range cin {
-			if income.Len() > 0 {
-				incomeAnalise(income.Bytes(), c)
+		if len(IncomePool) < model.CoreCount {
+			execIncome(cin, cn)
+			_ = <-cn
+		} else {
+			size := len(IncomePool) / model.CoreCount
+			for i := 0; i < model.CoreCount; i++ {
+				if i < model.CoreCount-1 {
+					go execIncome(cin[size*i:size*(i+1)], cn)
+				} else {
+					go execIncome(cin[size*i:], cn)
+				}
+			}
+			for i := 0; i < model.CoreCount; i++ {
+				_ = <-cn
 			}
 		}
 
-		for _, obj := range ObjectPool {
-			obj.update()
-
-		}
+		//TODO objects update
+		//for _, obj := range ObjectPool {
+		//	obj.update()
+		//
+		//}
 
 		for _, player := range SessionPool {
-			if player.answerPool.Len() > 0 {
-				player.answerPoolMutex.Lock()
-				buf := player.answerPool
-				player.answerPool = bytes.NewBuffer(make([]byte, 0))
-				player.answerPoolMutex.Unlock()
+			if player.AnswerPool.Len() > 0 {
+				player.AnswerPoolMutex.Lock()
+				buf := player.AnswerPool
+				player.AnswerPool = bytes.NewBuffer(make([]byte, 0))
+				player.AnswerPoolMutex.Unlock()
 				_ = player.Session.WriteMessage(2, buf.Bytes())
 			}
 		}
@@ -52,4 +68,13 @@ func Cycle() {
 			time.Sleep(time.Duration(sl))
 		}
 	}
+}
+
+func execIncome(arr []*model.ConnAnalize, compl chan (bool)) {
+	for _, conn := range arr {
+		if conn.Buffer.Len() > 0 {
+			IncomeAnalise(conn.Buffer.Bytes(), conn.Conn)
+		}
+	}
+	compl <- true
 }
