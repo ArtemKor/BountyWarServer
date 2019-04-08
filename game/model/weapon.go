@@ -2,8 +2,8 @@ package model
 
 type Weapon interface {
 	Param() *WeaponParameters
-	Update(delta int64)
-	Shoot()
+	Update(game Game)
+	Shoot(game Game)
 }
 
 type WeaponParameters struct {

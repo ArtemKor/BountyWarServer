@@ -43,10 +43,10 @@ func BytesToRadian(angle []byte) float64 {
 func CoordToBytes(coord float64) []byte {
 	answer := make([]byte, 3)
 	f := int(coord) / ChunkMulty
-	//coord -= float64(f * 2048)
-	s := (int(coord) % ChunkMulty) / CellSize
-	//coord -= float64(s * 64)
-	t := int(coord*CellMulty) % CellSize
+	coord -= float64(f * ChunkMulty)
+	s := int(coord / CellSize)
+	coord -= float64(s * CellSize)
+	t := int(coord * CellMulty)
 	answer[0] = byte(f)
 	answer[1] = byte(s)
 	answer[2] = byte(t)

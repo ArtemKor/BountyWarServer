@@ -7,24 +7,25 @@ import (
 )
 
 const (
-	KeyGo      = 1
-	KeyBack    = 1 << 1
-	KeyLeft    = 1 << 2
-	KeyRight   = 1 << 3
-	KeyFire    = 1 << 4
-	CellSize   = 64
-	ChunkSize  = 32
-	WorldSize  = 3
-	CellMulty  = 256.0 / CellSize
-	ChunkMulty = CellSize * ChunkSize
-	CoreCount  = 7
+	KeyGo         = 1
+	KeyBack       = 1 << 1
+	KeyLeft       = 1 << 2
+	KeyRight      = 1 << 3
+	KeyFire       = 1 << 4
+	CellSize      = 64
+	ChunkSize     = 4
+	WorldSize     = 3
+	RealWorldSize = WorldSize + 4
+	CellMulty     = 256.0 / CellSize
+	ChunkMulty    = CellSize * ChunkSize
+	CoreCount     = 7
 )
 
 type GameObject interface {
 	GetID() uint32
 	GetDisplayProtocol() []byte
 	GetPositionProtocol() []byte
-	Update()
+	Update(game Game)
 }
 
 type ConnAnalize struct {
@@ -73,4 +74,10 @@ func (p *Player) SetKeys(kSet byte) {
 	} else {
 		p.KeySet[4] = false
 	}
+}
+
+type DroneChangeChunkEvent struct {
+	Drone Drone
+	Cx    uint16
+	Cy    uint16
 }

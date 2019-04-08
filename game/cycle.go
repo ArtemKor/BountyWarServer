@@ -6,6 +6,8 @@ import (
 	"time"
 )
 
+var game = MainGame{}
+
 func Cycle() {
 	current := time.Now()
 	for {
@@ -46,11 +48,26 @@ func Cycle() {
 			}
 		}
 
-		//TODO objects update
-		//for _, obj := range ObjectPool {
-		//	obj.update()
-		//
-		//}
+		if len(ChunkPool) < model.CoreCount {
+			chunkDroneUpdate(ChunkPool, cn)
+			_ = <-cn
+		} else {
+			size := len(IncomePool) / model.CoreCount
+			for i := 0; i < model.CoreCount; i++ {
+				if i < model.CoreCount-1 {
+					go chunkDroneUpdate(ChunkPool[size*i:size*(i+1)], cn)
+				} else {
+					go chunkDroneUpdate(ChunkPool[size*i:], cn)
+				}
+			}
+			for i := 0; i < model.CoreCount; i++ {
+				_ = <-cn
+			}
+		}
+
+		chunkDroneEvent(DroneChangeChunkPool, cn)
+		_ = <-cn
+		DroneChangeChunkPool = make([]*model.DroneChangeChunkEvent, 0)
 
 		for _, player := range SessionPool {
 			if player.AnswerPool.Len() > 0 {
@@ -68,6 +85,20 @@ func Cycle() {
 			time.Sleep(time.Duration(sl))
 		}
 	}
+}
+
+func chunkDroneEvent(evs []*model.DroneChangeChunkEvent, compl chan (bool)) {
+	for _, ev := range evs {
+		DroneChangeChunk(ev)
+	}
+	compl <- true
+}
+
+func chunkDroneUpdate(cnks []*Chunk, compl chan (bool)) {
+	for _, cnk := range cnks {
+		cnk.UpdateDrones()
+	}
+	compl <- true
 }
 
 func execIncome(arr []*model.ConnAnalize, compl chan (bool)) {

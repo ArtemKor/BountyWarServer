@@ -8,7 +8,7 @@ import (
 	"net/http"
 )
 
-var addr = flag.String("addr", "192.168.111.164:8082", "http service address")
+var addr = flag.String("addr", "192.168.0.146:8082", "http service address")
 
 var upgrader = websocket.Upgrader{} // use default options
 
@@ -29,9 +29,10 @@ func echo(w http.ResponseWriter, r *http.Request) {
 	for {
 		_, message, err := c.ReadMessage()
 		if err != nil {
-			log.Println("Error:")
+			log.Println("Error:", err)
 			break
 		}
+		//log.Println("message:", message)
 		game.IncomeMessage(message, c)
 	}
 }
