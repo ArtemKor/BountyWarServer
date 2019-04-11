@@ -3,12 +3,77 @@ package game
 import (
 	"BountyWarServerG/game/model"
 	"bytes"
+	"math/rand"
 	"time"
 )
 
 var game = MainGame{}
 
+func initGame() {
+	for c, cha := range ChunkPool {
+		x := c % model.RealWorldSize
+		y := c / model.RealWorldSize
+		cha.Cells = make([]*ChunkCell, model.ChunkSize*model.ChunkSize)
+		for i := 0; i < len(cha.Cells); i++ {
+			cell := ChunkCell{}
+			if x == 0 || x == model.RealWorldSize-1 || y == 0 || y == model.RealWorldSize-1 {
+				cell.Tpe = 2
+				cell.Grounded = false
+			} else {
+				cell.Tpe = 0
+				cell.Grounded = true
+			}
+			cha.Cells[i] = &cell
+		}
+	}
+	for i := 0; i < 10; i++ {
+		x := rand.Intn(model.ChunkSize * model.WorldSize)
+		y := rand.Intn(model.ChunkSize * model.WorldSize)
+		Cx := x/model.ChunkSize + 1
+		Cy := y/model.ChunkSize + 1
+		cell := ChunkPool[Cx+model.RealWorldSize*Cy].Cells[(x%model.ChunkSize)+model.ChunkSize*(y%model.ChunkSize)]
+		cell.Grounded = false
+		cell.Tpe = 2
+		curr := (y+model.ChunkSize)*model.WorldCellSize + x + model.ChunkSize
+		prew := curr
+		nx := 0
+		ny := 0
+		for n := 0; n < 6; n++ {
+			new := curr
+			for new == curr || new == prew {
+				side := rand.Intn(4)
+				if side == 0 {
+					nx = 1
+					ny = 0
+				} else if side == 1 {
+					nx = -1
+					ny = 0
+				} else if side == 2 {
+					nx = 0
+					ny = 1
+				} else if side == 3 {
+					nx = 0
+					ny = -1
+				}
+				new = (y+ny+model.ChunkSize)*model.WorldCellSize + x + nx + model.ChunkSize
+			}
+			x += nx
+			y += ny
+			prew = curr
+			curr = new
+			Cx = (x + model.ChunkSize) / model.ChunkSize
+			Cy = (y + model.ChunkSize) / model.ChunkSize
+			//fmt.Println("x:", x, " y:", y)
+			//fmt.Println("Cx:", Cx, " Cy:", Cy)
+			cell = ChunkPool[Cx+model.RealWorldSize*Cy].Cells[((x+model.ChunkSize)%model.ChunkSize)+model.ChunkSize*((y+model.ChunkSize)%model.ChunkSize)]
+			cell.Grounded = false
+			cell.Tpe = 2
+		}
+	}
+}
+
 func Cycle() {
+	initGame()
 	current := time.Now()
 	for {
 		delta := current.UnixNano() - time.Now().UnixNano()

@@ -9,17 +9,21 @@ import (
 type MainGame struct{}
 
 func (mg *MainGame) RemoveDrone(dr model.Drone) {
-	ChunkPool[dr.Param().CX+dr.Param().CY*model.ChunkMulty].RemoveDrone(dr)
+	ChunkPool[dr.Param().CX+dr.Param().CY*model.RealWorldSize].RemoveDrone(dr)
 }
 
 func DroneChangeChunk(ev *model.DroneChangeChunkEvent) {
-	pr := ev.Drone.Param()
-	cnum := pr.CY*model.RealWorldSize + pr.CX
-	nnum := ev.Cy*model.RealWorldSize + ev.Cx
-	ChunkPool[cnum].RemoveDrone(ev.Drone)
-	pr.CX = ev.Cx
-	pr.CY = ev.Cy
-	ChunkPool[nnum].AddDrone(ev.Drone)
+	if ev.Cx == 0 || ev.Cx == model.RealWorldSize-1 || ev.Cy == 0 || ev.Cy == model.RealWorldSize-1 {
+		ev.Drone.Param().Health = 0
+	} else {
+		pr := ev.Drone.Param()
+		cnum := pr.CY*model.RealWorldSize + pr.CX
+		nnum := ev.Cy*model.RealWorldSize + ev.Cx
+		ChunkPool[cnum].RemoveDrone(ev.Drone)
+		pr.CX = ev.Cx
+		pr.CY = ev.Cy
+		ChunkPool[nnum].AddDrone(ev.Drone)
+	}
 }
 
 func (mg *MainGame) AddDroneChangeChunkEvent(nx, ny uint16, dr model.Drone) {

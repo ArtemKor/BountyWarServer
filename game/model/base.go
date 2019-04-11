@@ -13,9 +13,10 @@ const (
 	KeyRight      = 1 << 3
 	KeyFire       = 1 << 4
 	CellSize      = 64
-	ChunkSize     = 4
+	ChunkSize     = 8
 	WorldSize     = 3
-	RealWorldSize = WorldSize + 4
+	RealWorldSize = WorldSize + 2
+	WorldCellSize = RealWorldSize * ChunkSize
 	CellMulty     = 256.0 / CellSize
 	ChunkMulty    = CellSize * ChunkSize
 	CoreCount     = 7
@@ -41,6 +42,7 @@ type Player struct {
 	My              int
 	AnswerPool      *bytes.Buffer
 	AnswerPoolMutex sync.Mutex
+	Chunks          []bool
 }
 
 type Income struct {

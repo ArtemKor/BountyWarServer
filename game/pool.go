@@ -11,6 +11,7 @@ import (
 )
 
 var SessionPool map[*websocket.Conn]*model.Player
+var PlayerPool map[*model.Player]*websocket.Conn
 var SessionPoolMutex sync.Mutex
 var IncomePool map[*websocket.Conn]*model.Income
 var IncomePoolMutex sync.Mutex
@@ -24,6 +25,7 @@ var DroneChangeChunkPoolMutex sync.Mutex
 func init() {
 	DronePool = make(map[uint32]model.Drone)
 	SessionPool = make(map[*websocket.Conn]*model.Player)
+	PlayerPool = make(map[*model.Player]*websocket.Conn)
 	IncomePool = make(map[*websocket.Conn]*model.Income)
 	ChunkPool = make([]*Chunk, model.RealWorldSize*model.RealWorldSize)
 	for x := 0; x < model.RealWorldSize; x++ {
@@ -46,6 +48,7 @@ func PlayerConnect(c *websocket.Conn) *model.Player {
 		CurrentDrone: nil,
 		KeySet:       [5]bool{false, false, false, false, false},
 		AnswerPool:   bytes.NewBuffer(make([]byte, 0)),
+		Chunks:       make([]bool, model.RealWorldSize*model.RealWorldSize),
 	}
 	i := model.Income{
 		Income: bytes.NewBuffer(make([]byte, 0)),
@@ -55,6 +58,7 @@ func PlayerConnect(c *websocket.Conn) *model.Player {
 	IncomePoolMutex.Unlock()
 	SessionPoolMutex.Lock()
 	SessionPool[c] = &p
+	PlayerPool[&p] = c
 	SessionPoolMutex.Unlock()
 	//ma := make([]byte, 1025)
 	//ma[0] = 14
@@ -83,6 +87,8 @@ func PlayerDisconnect(c *websocket.Conn) {
 		if p.CurrentDrone != nil {
 			p.CurrentDrone.Param().Health = 0
 		}
+
+		delete(PlayerPool, SessionPool[c])
 		delete(SessionPool, c)
 		log.Print("Player disconnect: ", len(SessionPool))
 	}
@@ -104,8 +110,8 @@ func CreateDroneForPlayer(c *websocket.Conn, p *model.Player) {
 		Vparam: &wp,
 	}
 	dp := model.DroneParameters{
-		X:        50,
-		Y:        50,
+		X:        50 + model.ChunkMulty,
+		Y:        50 + model.ChunkMulty,
 		Rotation: 0,
 		ID:       id,
 		Health:   100,
